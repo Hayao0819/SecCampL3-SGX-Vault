@@ -82,6 +82,18 @@ int sample_addition(sgx_enclave_id_t eid, std::string request_json,
     return 0;
 }
 
+bool middleware_master_key(sgx_enclave_id_t eid, std::string input_key) {
+    // ここにマスターパスワードのミドルウェア処理を実装
+    // 例えば、入力されたキーがマスターパスワードと一致するか確認するなど
+    print_debug_message("Middleware for master key processing.", INFO);
+
+    bool authenticated = false;
+
+    ecall_authenticate_master_password(eid, &authenticated, input_key.c_str());
+    return authenticated;
+}
+
+
 // 各エンドポイントのハンドラ関数
 void handler_init_ra(sgx_enclave_id_t eid, const Request& req, Response& res) {
     std::string response_json, error_message = "";
@@ -209,8 +221,18 @@ void handler_set_masterkey(sgx_enclave_id_t eid, const Request& req, Response& r
 }
 
 void handler_store_password(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string master_key = req.get_param_value("master_key");
     std::string key = req.get_param_value("key");
     std::string value = req.get_param_value("value");
+
+    bool authorized = middleware_master_key(eid, master_key);
+    if (!authorized) {
+        res.status = 403;
+        json::JSON res_json_obj;
+        res_json_obj["error_message"] = "Unauthorized access. Invalid master key.";
+        res.set_content(res_json_obj.dump(), "application/json");
+        return;
+    }
 
     sgx_status_t store_password_result;
     sgx_status_t status = ecall_store_password(eid, &store_password_result, key.c_str(), value.c_str());
@@ -227,3 +249,4 @@ void handler_store_password(sgx_enclave_id_t eid, const Request& req, Response& 
     res_json_obj["message"] = "Password stored successfully.";
     res.set_content(res_json_obj.dump(), "application/json");
 }
+

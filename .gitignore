@@ -7,3 +7,4 @@ client_app
 server_app
 enclave.so
 enclave.signed.so
+server-data.dat

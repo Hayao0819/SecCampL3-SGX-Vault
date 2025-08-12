@@ -49,6 +49,8 @@ enclave
         //     [out, size=value_len]char** value, [out]size_t* value_len);
 
         public int ecall_stored_stat();
+
+        public bool ecall_authenticate_master_password([in,string]const char* master_password);
     };
 
     /* OCALLのプロトタイプを記述 */

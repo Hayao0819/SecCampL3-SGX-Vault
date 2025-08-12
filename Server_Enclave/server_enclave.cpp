@@ -1,4 +1,3 @@
-
 #include "server_config.hpp"
 #include "server_enclave_headers.hpp"
 #include "server_enclave_ra.hpp"
@@ -104,6 +103,7 @@ void ecall_init_app(uint8_t* app_config, size_t app_config_len) {
     if (config == nullptr) {
         uint8_t unsealed_data_size = calc_unsealed_len(app_config, app_config_len);
         config = new SGXVaultConfig();
+        // 初期化時のみクリア
         config->user_data.clear();
         config->master_password.clear();
         uint8_t* unsealed_data = new uint8_t[unsealed_data_size]();
@@ -182,6 +182,7 @@ sgx_status_t ecall_store_password(const char* key, const char* value) {
     int ret = write_current_config();
     if (ret < 0) {
         ocall_print("Failed to write the current configuration.", 2);
+        // 保存失敗でもuser_dataは消さない
         return SGX_ERROR_UNEXPECTED;
     }
     ocall_print("Password stored successfully.", 1);
@@ -234,3 +235,23 @@ int ecall_stored_stat() {
 
     return config->user_data.size();
 }
+
+bool ecall_authenticate_master_password(const char* master_password) {
+    if (config == nullptr || config->master_password.empty()) {
+        ocall_print("Configuration is not initialized or master password is not set.", 2);
+        return false;
+    }
+
+    sgx_sha256_hash_t password_hash;
+    sgx_status_t password_hash_status = sgx_sha256_msg(
+        reinterpret_cast<const uint8_t*>(master_password),
+        strlen(master_password),
+        &password_hash);
+    if (password_hash_status != SGX_SUCCESS) {
+        ocall_print("Failed to hash the master password.", 2);
+        return false;
+    }
+
+    return config->master_password == std::string(reinterpret_cast<const char*>(password_hash), SGX_SHA256_HASH_SIZE);
+}
+
