@@ -1,4 +1,5 @@
 #pragma once
+
 #include <sgx_report.h>
 #include <sgx_tcrypto.h>
 #include <sgx_utils.h>

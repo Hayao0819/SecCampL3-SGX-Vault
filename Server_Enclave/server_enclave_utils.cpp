@@ -1,11 +1,11 @@
+#include "server_enclave_utils.hpp"
+
 #include <sgx_attributes.h>
 #include <sgx_trts.h>
 #include <sgx_tseal.h>
 #include <string.h>
 
 #include "server_enclave_headers.hpp"
-#define MRENCLAVE 0
-#define MRSIGNER 1
 
 // template <typename T>
 // std::vector<uint8_t> sealing_data(const T& obj, int policy) {

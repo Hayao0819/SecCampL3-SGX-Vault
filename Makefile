@@ -148,10 +148,10 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 ## コンパイル時に使用するC/C++のソースを列挙
-Enclave_Cpp_Files := Server_Enclave/server_enclave.cpp Server_Enclave/server_enclave_ra.cpp Server_Enclave/server_enclave_utils.cpp
+Enclave_Cpp_Files := Server_Enclave/server_enclave.cpp Server_Enclave/server_enclave_ra.cpp Server_Enclave/server_enclave_utils.cpp Server_Enclave/server_config.cpp
 
 ## 使用するincludeファイル（ヘッダ）がある場所を列挙
-Enclave_Include_Paths := -IServer_Enclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport \
+Enclave_Include_Paths := -IServer_Enclave -IServer_App -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport \
 						-I$(SGX_SDK)/include/libcxx -Icommon
 
 
@@ -237,7 +237,7 @@ $(Client_App_Name): $(Client_Cpp_Objects)
 
 ## Edger8rによりUntrusted向けエッジ関数のソースを生成
 Server_App/server_enclave_u.c: $(SGX_EDGER8R) Server_Enclave/server_enclave.edl
-	@cd Server_App && $(SGX_EDGER8R) --untrusted ../Server_Enclave/server_enclave.edl --search-path ../Enclave --search-path $(SGX_SDK)/include
+	@cd Server_App && $(SGX_EDGER8R) --untrusted ../Server_Enclave/server_enclave.edl --search-path $(SGX_SDK)/include
 	@echo "GEN  =>  $@"
 
 ## ソースによりエッジ関数のオブジェクトファイルを生成。$(CC)は暗黙のルールにより、デフォルトでccコマンド。

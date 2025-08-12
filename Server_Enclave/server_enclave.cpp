@@ -2,10 +2,10 @@
 
 #include <map>
 
+#include "server_config.hpp"
 #include "server_enclave_headers.hpp"
 #include "server_enclave_ra.hpp"
 #include "server_enclave_utils.hpp"
-extern std::vector<ra_session_t> g_ra_sessions;
 
 sgx_status_t ecall_sample_addition(uint32_t ra_ctx,
                                    uint8_t* cipher1, size_t cipher1_len, uint8_t* cipher2,
@@ -100,38 +100,6 @@ sgx_status_t ecall_sample_addition(uint32_t ra_ctx,
     return status;
 }
 
-typedef struct {
-    string master_password;
-    std::map<string, string> user_data;
-
-} SGXVaultConfig;
-
-SGXVaultConfig* config = nullptr;
-
-// unsealed_dataをパースしてSGXVaultConfigに格納する関数
-void parse_unsealed_data(uint8_t* unsealed_data, size_t unsealed_data_size, SGXVaultConfig* config) {
-    size_t offset = 0;
-    // master_passwordの抽出
-    const char* mp = reinterpret_cast<const char*>(unsealed_data);
-    size_t mp_len = strlen(mp);
-    config->master_password = std::string(mp);
-    offset += mp_len + 1;
-
-    // user_dataの抽出
-    while (offset < unsealed_data_size) {
-        const char* key = reinterpret_cast<const char*>(unsealed_data + offset);
-        if (key[0] == '\0') break;  // 終端
-        size_t key_len = strlen(key);
-        offset += key_len + 1;
-
-        const char* value = reinterpret_cast<const char*>(unsealed_data + offset);
-        size_t value_len = strlen(value);
-        offset += value_len + 1;
-
-        config->user_data[std::string(key)] = std::string(value);
-    }
-}
-
 void ecall_init_app(uint8_t* app_config, size_t app_config_len) {
     ocall_print("Server Enclave initialized successfully.", 1);
 
@@ -186,19 +154,5 @@ void ecall_setup_master_password(const char* master_password) {
     }
     config->master_password = std::string(reinterpret_cast<const char*>(password_hash), SGX_SHA256_HASH_SIZE);
 
-
-    
-
     ocall_print("Master password set successfully.", 1);
-}
-
-void update_config(){
-    if (config == nullptr) {
-        ocall_print("Configuration is not initialized.", 2);
-        return;
-    }
-
-    
-
-    ocall_print("Configuration updated successfully.", 1);
 }
