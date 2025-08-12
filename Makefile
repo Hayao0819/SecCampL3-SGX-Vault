@@ -148,7 +148,7 @@ endif
 Crypto_Library_Name := sgx_tcrypto
 
 ## コンパイル時に使用するC/C++のソースを列挙
-Enclave_Cpp_Files := Server_Enclave/server_enclave.cpp
+Enclave_Cpp_Files := Server_Enclave/server_enclave.cpp Server_Enclave/server_enclave_ra.cpp Server_Enclave/server_enclave_utils.cpp
 
 ## 使用するincludeファイル（ヘッダ）がある場所を列挙
 Enclave_Include_Paths := -IServer_Enclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/stlport \

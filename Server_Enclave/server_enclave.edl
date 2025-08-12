@@ -34,6 +34,8 @@ enclave
             [in, size=16]uint8_t *tag1, [in, size=16]uint8_t *tag2, 
             [out, size=32]uint8_t *result, [out]size_t *result_len,
             [out, size=12]uint8_t *iv_result, [out, size=16]uint8_t *tag_result);
+
+        public void ecall_init_app([in, size=app_config_len]uint8_t *app_config, size_t app_config_len);
     };
 
     /* OCALLのプロトタイプを記述 */

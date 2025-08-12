@@ -1,4 +1,6 @@
+
 #include "headers.hpp"
+#include "server_ra.hpp"
 
 /* settingsファイルからロードした値を格納する構造体 */
 typedef struct server_settings_struct {
@@ -24,16 +26,18 @@ int sample_addition(sgx_enclave_id_t eid, std::string request_json,
     size_t cipher1_len, cipher2_len, tmpsz;
     uint32_t ra_ctx;
 
+    // RAのセッション識別ID
     ra_ctx = std::stoi(base64_decode<char, char>((char*)req_json_obj["ra_context"].ToString().c_str(), tmpsz));
 
+    //
     cipher1 = base64_decode<uint8_t, char>((char*)req_json_obj["cipher1"].ToString().c_str(), cipher1_len);
-
     cipher2 = base64_decode<uint8_t, char>((char*)req_json_obj["cipher2"].ToString().c_str(), cipher2_len);
 
+    // 初期化ベクトル
     iv = base64_decode<uint8_t, char>((char*)req_json_obj["iv"].ToString().c_str(), tmpsz);
 
+    // 各cipherのタグ
     tag1 = base64_decode<uint8_t, char>((char*)req_json_obj["tag1"].ToString().c_str(), tmpsz);
-
     tag2 = base64_decode<uint8_t, char>((char*)req_json_obj["tag2"].ToString().c_str(), tmpsz);
 
     sgx_status_t status, retval;
@@ -76,4 +80,98 @@ int sample_addition(sgx_enclave_id_t eid, std::string request_json,
     response_json = res_json_obj.dump();
 
     return 0;
+}
+
+// 各エンドポイントのハンドラ関数
+void handler_init_ra(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string response_json, error_message = "";
+    std::string request_json = req.body;
+    int ret = initialize_ra(eid, request_json, response_json, error_message);
+    if (!ret)
+        res.status = 200;
+    else {
+        char* error_message_b64;
+        error_message_b64 = base64_encode<char, char>((char*)error_message.c_str(), error_message.length());
+        json::JSON json_obj;
+        json_obj["error_message"] = std::string(error_message_b64);
+        response_json = json_obj.dump();
+        res.status = 500;
+    }
+    res.set_content(response_json, "application/json");
+}
+
+void handler_get_quote(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string request_json = req.body;
+    std::string response_json, error_message = "";
+    int ret = get_quote(eid, request_json, response_json, error_message);
+    print_debug_message("Quote JSON ->", DEBUG_LOG);
+    print_debug_message(response_json, DEBUG_LOG);
+    print_debug_message("", DEBUG_LOG);
+    if (!ret)
+        res.status = 200;
+    else {
+        char* error_message_b64;
+        error_message_b64 = base64_encode<char, char>((char*)error_message.c_str(), error_message.length());
+        json::JSON json_obj;
+        json_obj["error_message"] = std::string(error_message_b64);
+        response_json = json_obj.dump();
+        res.status = 500;
+    }
+    res.set_content(response_json, "application/json");
+}
+
+void handler_ra_result(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string request_json = req.body;
+    std::string response_json, error_message = "";
+    int ret = process_ra_result(eid, request_json, response_json, error_message);
+    if (!ret)
+        res.status = 200;
+    else {
+        char* error_message_b64;
+        error_message_b64 = base64_encode<char, char>((char*)error_message.c_str(), error_message.length());
+        json::JSON json_obj;
+        json_obj["error_message"] = std::string(error_message_b64);
+        response_json = json_obj.dump();
+        res.status = 500;
+    }
+    res.set_content(response_json, "application/json");
+}
+
+void handler_sample_addition(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string request_json = req.body;
+    std::string response_json, error_message = "";
+    int ret = sample_addition(eid, request_json, response_json, error_message);
+    if (!ret)
+        res.status = 200;
+    else {
+        json::JSON res_json_obj;
+        char* error_message_b64;
+        error_message_b64 = base64_encode<char, char>((char*)error_message.c_str(), error_message.length());
+        res_json_obj["error_message"] = std::string(error_message_b64);
+        response_json = res_json_obj.dump();
+        res.status = 500;
+    }
+    print_debug_message("send the result response to SP.", INFO);
+    print_debug_message("", INFO);
+    res.set_content(response_json, "application/json");
+}
+
+void handler_destruct_ra(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string request_json = req.body;
+    std::string response_json, error_message = "";
+    destruct_ra_context(eid, request_json);
+    res.status = 200;
+    json::JSON res_json_obj;
+    res_json_obj["message"] = std::string("OK");
+    response_json = res_json_obj.dump();
+    res.set_content(response_json, "application/json");
+}
+
+void handler_hi(const Request& req, Response& res) {
+    res.set_content("Hello World!", "text/plain");
+}
+
+void handler_stop(sgx_enclave_id_t eid, Server& svr, const Request& req, Response& res) {
+    sgx_destroy_enclave(eid);
+    svr.stop();
 }
