@@ -1,6 +1,3 @@
-#include <sgx_tseal.h>
-
-#include <map>
 
 #include "server_config.hpp"
 #include "server_enclave_headers.hpp"
@@ -167,4 +164,73 @@ sgx_status_t ecall_setup_master_password(const char* master_password) {
     }
     ocall_print("Master password set successfully.", 1);
     return SGX_SUCCESS;
+}
+
+sgx_status_t ecall_store_password(const char* key, const char* value) {
+    if (config == nullptr) {
+        ocall_print("Configuration is not initialized in ecall_store_password.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    if (key == nullptr || value == nullptr) {
+        ocall_print("Key or value is null.", 2);
+        return SGX_ERROR_INVALID_PARAMETER;
+    }
+
+    config->user_data[key] = value;
+
+    int ret = write_current_config();
+    if (ret < 0) {
+        ocall_print("Failed to write the current configuration.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
+    ocall_print("Password stored successfully.", 1);
+    return SGX_SUCCESS;
+}
+
+sgx_status_t ecall_get_password(char* key, char** value, size_t* value_len) {
+    if (config == nullptr) {
+        ocall_print("Configuration is not initialized in ecall_get_password.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    if (key == nullptr) {
+        ocall_print("Key is null.", 2);
+        return SGX_ERROR_INVALID_PARAMETER;
+    }
+
+    auto it = config->user_data.find(key);
+    if (it == config->user_data.end()) {
+        ocall_print("Key not found in user data.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    *value = new char[it->second.size() + 1];
+    memcpy(*value, it->second.c_str(), *value_len);
+    (*value)[*value_len] = '\0';
+    *value_len = it->second.size();
+
+    ocall_print("Password retrieved successfully.", 1);
+    return SGX_SUCCESS;
+}
+
+int ecall_stored_stat() {
+    if (config == nullptr) {
+        ocall_print("Configuration is not initialized in ecall_stored_stat.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    if (config->user_data.empty()) {
+        ocall_print("No passwords stored.", 1);
+        return 0;
+    }
+
+    ocall_print("Stored passwords:", 1);
+    for (const auto& pair : config->user_data) {
+        std::string message = "Key: " + pair.first + ", Value: " + pair.second;
+        ocall_print(message.c_str(), 1);
+    }
+    // return SGX_SUCCESS;
+
+    return config->user_data.size();
 }

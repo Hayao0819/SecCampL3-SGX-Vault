@@ -182,16 +182,20 @@ void handler_status(sgx_enclave_id_t eid, const Request& req, Response& res) {
     bool init_require = false;
     ecall_check_init_require(eid, &init_require);
     status_json["init_require"] = init_require;
+
+    int stored_pass_count = 0;
+    ecall_stored_stat(eid, &stored_pass_count);
+    status_json["stored_password_count"] = stored_pass_count;
+
     res.status = 200;
     res.set_content(status_json.dump(), "application/json");
 }
 
-void handler_set_password(sgx_enclave_id_t eid, const Request& req, Response& res) {
+void handler_set_masterkey(sgx_enclave_id_t eid, const Request& req, Response& res) {
     std::string master_password = req.body;
     sgx_status_t setup_master_password_status;
     sgx_status_t status = ecall_setup_master_password(eid, &setup_master_password_status, master_password.c_str());
-    print_sgx_status(status);
-    if (status != SGX_SUCCESS) {
+    if (setup_master_password_status != SGX_SUCCESS) {
         res.status = 500;
         json::JSON res_json_obj;
         res_json_obj["error_message"] = "Failed to set master password.";
@@ -201,5 +205,25 @@ void handler_set_password(sgx_enclave_id_t eid, const Request& req, Response& re
     res.status = 200;
     json::JSON res_json_obj;
     res_json_obj["message"] = "Master password set successfully.";
+    res.set_content(res_json_obj.dump(), "application/json");
+}
+
+void handler_store_password(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string key = req.get_param_value("key");
+    std::string value = req.get_param_value("value");
+
+    sgx_status_t store_password_result;
+    sgx_status_t status = ecall_store_password(eid, &store_password_result, key.c_str(), value.c_str());
+    if (status != SGX_SUCCESS) {
+        res.status = 500;
+        json::JSON res_json_obj;
+        res_json_obj["error_message"] = "Failed to store password.";
+        res.set_content(res_json_obj.dump(), "application/json");
+        return;
+    }
+
+    res.status = 200;
+    json::JSON res_json_obj;
+    res_json_obj["message"] = "Password stored successfully.";
     res.set_content(res_json_obj.dump(), "application/json");
 }

@@ -42,6 +42,13 @@ enclave
         public bool ecall_check_init_require();
 
         public sgx_status_t ecall_setup_master_password([in, string]const char* master_password);
+
+        public sgx_status_t ecall_store_password([in, string]const char* key, [in,string]const char* value);
+
+        // public sgx_status_t ecall_get_password([in, string]char* key, 
+        //     [out, size=value_len]char** value, [out]size_t* value_len);
+
+        public int ecall_stored_stat();
     };
 
     /* OCALLのプロトタイプを記述 */

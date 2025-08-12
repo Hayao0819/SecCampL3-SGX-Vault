@@ -33,8 +33,11 @@ void server_logics(sgx_enclave_id_t eid) {
     svr.Get("/status", [&](const Request& req, Response& res) {
         handler_status(eid, req, res);
     });
-    svr.Post("/set-password", [&](const Request& req, Response& res) {
-        handler_set_password(eid, req, res);
+    svr.Post("/set-masterkey", [&](const Request& req, Response& res) {
+        handler_set_masterkey(eid, req, res);
+    });
+    svr.Post("/store-password", [&](const Request& req, Response& res) {
+        handler_store_password(eid, req, res);
     });
 
     svr.listen("localhost", 1234);

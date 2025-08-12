@@ -7,7 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cstring>
 #include <exception>
+#include <map>
 #include <string>
 #include <vector>
 

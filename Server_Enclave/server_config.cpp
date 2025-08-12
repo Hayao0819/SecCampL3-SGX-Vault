@@ -111,7 +111,7 @@ void parse_unsealed_data(uint8_t* unsealed_data, size_t unsealed_data_size, SGXV
 // 設定ファイルをSealingして結果をsealed_dataに書き込む
 void sealing_config(uint8_t*& sealed_data, size_t* sealed_data_size) {
     if (config == nullptr) {
-        ocall_print("Configuration is not initialized.", 2);
+        ocall_print("Configuration is not initialized in sealing_config.", 2);
         return;
     }
 
