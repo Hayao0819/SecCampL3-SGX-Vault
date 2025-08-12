@@ -86,7 +86,7 @@ else
 endif
 
 ## コンパイル時に使用するC/C++のソースを列挙
-App_Cpp_Files := Server_App/server_app.cpp Server_App/error_print.cpp Server_App/server_router.cpp Server_App/server_service.cpp Server_App/server_sgx.cpp Server_App/server_ra.cpp Server_App/utils.cpp Server_App/server_config.cpp Server_App/server_ocall.cpp common/base64.cpp common/debug_print.cpp common/hexutil.cpp common/crypto.cpp
+App_Cpp_Files := Server_App/server_app.cpp Server_App/error_print.cpp Server_App/server_router.cpp Server_App/server_service.cpp Server_App/server_sgx.cpp Server_App/server_ra.cpp Server_App/utils.cpp Server_App/server_config.cpp common/base64.cpp common/debug_print.cpp common/hexutil.cpp common/crypto.cpp
 
 ## 使用するincludeファイル（ヘッダ）がある場所を列挙
 App_Include_Paths := -IServer_App -I$(SGX_SDK)/include -Icommon -Iinclude

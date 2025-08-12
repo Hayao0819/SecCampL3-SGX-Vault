@@ -6,7 +6,7 @@
 #include "server_enclave_headers.hpp"
 #include "server_enclave_ra.hpp"
 #include "server_enclave_utils.hpp"
-#include "server_config.hpp"
+#include "sgx_error.h"
 
 sgx_status_t ecall_sample_addition(uint32_t ra_ctx,
                                    uint8_t* cipher1, size_t cipher1_len, uint8_t* cipher2,
@@ -139,9 +139,14 @@ bool ecall_check_init_require() {
     return config == nullptr || config->master_password.empty();
 }
 
-void ecall_setup_master_password(const char* master_password) {
+sgx_status_t ecall_setup_master_password(const char* master_password) {
     if (config == nullptr) {
         config = new SGXVaultConfig();
+    }
+
+    if (config->master_password.size() > 0) {
+        ocall_print("Master password is already set.", 2);
+        return SGX_ERROR_UNEXPECTED;
     }
 
     sgx_sha256_hash_t password_hash;
@@ -151,11 +156,15 @@ void ecall_setup_master_password(const char* master_password) {
         &password_hash);
     if (password_hash_status != SGX_SUCCESS) {
         ocall_print("Failed to hash the master password.", 2);
-        return;
+        return password_hash_status;
     }
     config->master_password = std::string(reinterpret_cast<const char*>(password_hash), SGX_SHA256_HASH_SIZE);
 
-
+    int ret = write_current_config();
+    if (ret < 0) {
+        ocall_print("Failed to write the current configuration.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
     ocall_print("Master password set successfully.", 1);
+    return SGX_SUCCESS;
 }
-

@@ -1,15 +1,16 @@
-
-#include "server_config.hpp"
-
 #include <cstdint>
 #include <cstring>
 #include <map>
 #include <stdexcept>
 #include <string>
+#include <new>          // std::nothrow
+#include <sgx_tseal.h>  // sgx_calc_sealed_data_size, sgx_seal_data
 
-#include "server_enclave_headers.hpp"
-#include "server_enclave_utils.hpp"
+#include "server_config.hpp"         // SGXVaultConfig 定義
+#include "server_enclave_headers.hpp" // SGX SGX 関連
+#include "server_enclave_utils.hpp"   // sealing_bytes, ocall_print, ocall_write_config_file
 
+// グローバル設定
 SGXVaultConfig* config = nullptr;
 
 // SGXVaultConfig -> bytes
@@ -107,40 +108,81 @@ void parse_unsealed_data(uint8_t* unsealed_data, size_t unsealed_data_size, SGXV
     }
 }
 
-void sealing_config(uint8_t* sealed_data, size_t sealed_data_size) {
+// 設定ファイルをSealingして結果をsealed_dataに書き込む
+void sealing_config(uint8_t*& sealed_data, size_t* sealed_data_size) {
     if (config == nullptr) {
         ocall_print("Configuration is not initialized.", 2);
         return;
     }
 
-    uint8_t* bytes;
+    // ---- 1. 必要サイズ計算 ----
     size_t bytes_len = 0;
-    config_to_bytes(config, bytes, &bytes_len);
-
-    if (bytes_len > sealed_data_size) {
-        ocall_print("Sealed data buffer is too small.", 2);
+    config_to_bytes(config, nullptr, &bytes_len);
+    if (bytes_len == 0) {
+        ocall_print("Failed to calculate configuration size.", 2);
         return;
     }
 
-    sealing_bytes(bytes, bytes_len, sealed_data, sealed_data_size, MRSIGNER);
+    // ---- 2. bytes 確保 ----
+    uint8_t* bytes = new (std::nothrow) uint8_t[bytes_len];
+    if (!bytes) {
+        ocall_print("Failed to allocate memory for config bytes.", 2);
+        return;
+    }
+    config_to_bytes(config, bytes, &bytes_len);
+
+    // ---- 3. sealed_data サイズ計算 ----
+    *sealed_data_size = sgx_calc_sealed_data_size(0, static_cast<uint32_t>(bytes_len));
+    if (*sealed_data_size == UINT32_MAX) {
+        ocall_print("sgx_calc_sealed_data_size failed.", 2);
+        delete[] bytes;
+        return;
+    }
+
+    // ---- 4. sealed_data 確保 ----
+    sealed_data = new (std::nothrow) uint8_t[*sealed_data_size];
+    if (!sealed_data) {
+        ocall_print("Failed to allocate memory for sealed data.", 2);
+        delete[] bytes;
+        return;
+    }
+
+    // ---- 5. シーリング実行 ----
+    sgx_status_t status = sealing_bytes(bytes, bytes_len, sealed_data, *sealed_data_size, MRSIGNER);
+    delete[] bytes; // bytes 解放
+
+    if (status != SGX_SUCCESS) {
+        ocall_print("Failed to seal the configuration data.", 2);
+        delete[] sealed_data;
+        sealed_data = nullptr;
+        *sealed_data_size = 0;
+        return;
+    }
 
     ocall_print("Configuration updated successfully.", 1);
 }
 
-void write_current_config() {
-    uint8_t* sealed_config;
-    size_t sealed_config_size;
+// 設定をSealingしてファイルに書き込む
+int write_current_config() {
+    uint8_t* sealed_config = nullptr;
+    size_t sealed_config_size = 0;
 
     try {
-        sealing_config(sealed_config, sealed_config_size);
+        sealing_config(sealed_config, &sealed_config_size);
     } catch (const std::runtime_error& e) {
         ocall_print(e.what(), 2);
-        return;
-    }
-    if (sealed_config == nullptr) {
-        ocall_print("Failed to seal the configuration data.", 2);
-        return;
+        return -1;
     }
 
+    if (!sealed_config || sealed_config_size == 0) {
+        ocall_print("Failed to seal the configuration data.", 2);
+        return -1;
+    }
+
+    // OCALLでファイルへ書き込み
     ocall_write_config_file(sealed_config, sealed_config_size);
+
+    // メモリ解放
+    delete[] sealed_config;
+    return 0;
 }

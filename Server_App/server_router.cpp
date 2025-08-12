@@ -34,12 +34,7 @@ void server_logics(sgx_enclave_id_t eid) {
         handler_status(eid, req, res);
     });
     svr.Post("/set-password", [&](const Request& req, Response& res) {
-        std::string master_password = req.body;
-        ecall_setup_master_password(eid, master_password.c_str());
-        res.status = 200;
-        json::JSON res_json_obj;
-        res_json_obj["message"] = "Master password set successfully.";
-        res.set_content(res_json_obj.dump(), "application/json");
+        handler_set_password(eid, req, res);
     });
 
     svr.listen("localhost", 1234);

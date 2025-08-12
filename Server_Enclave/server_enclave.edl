@@ -41,7 +41,7 @@ enclave
 
         public bool ecall_check_init_require();
 
-        public void ecall_setup_master_password([in, string]const char* master_password);
+        public sgx_status_t ecall_setup_master_password([in, string]const char* master_password);
     };
 
     /* OCALLのプロトタイプを記述 */

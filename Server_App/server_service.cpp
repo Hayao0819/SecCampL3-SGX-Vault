@@ -182,8 +182,24 @@ void handler_status(sgx_enclave_id_t eid, const Request& req, Response& res) {
     bool init_require = false;
     ecall_check_init_require(eid, &init_require);
     status_json["init_require"] = init_require;
-
+    res.status = 200;
     res.set_content(status_json.dump(), "application/json");
+}
 
-    // status_json["status"] = "";
+void handler_set_password(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string master_password = req.body;
+    sgx_status_t setup_master_password_status;
+    sgx_status_t status = ecall_setup_master_password(eid, &setup_master_password_status, master_password.c_str());
+    print_sgx_status(status);
+    if (status != SGX_SUCCESS) {
+        res.status = 500;
+        json::JSON res_json_obj;
+        res_json_obj["error_message"] = "Failed to set master password.";
+        res.set_content(res_json_obj.dump(), "application/json");
+        return;
+    }
+    res.status = 200;
+    json::JSON res_json_obj;
+    res_json_obj["message"] = "Master password set successfully.";
+    res.set_content(res_json_obj.dump(), "application/json");
 }

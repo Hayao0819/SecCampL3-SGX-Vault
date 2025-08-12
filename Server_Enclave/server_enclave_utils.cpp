@@ -18,7 +18,7 @@
 //     return sealed;
 // }
 
-void sealing_bytes(uint8_t* message, int message_len, uint8_t* sealed, int sealed_len, int policy) {
+sgx_status_t sealing_bytes(uint8_t* message, int message_len, uint8_t* sealed, int sealed_len, int policy) {
     uint16_t key_policy;
     sgx_status_t status;
     sgx_attributes_t attr;
@@ -37,6 +37,7 @@ void sealing_bytes(uint8_t* message, int message_len, uint8_t* sealed, int seale
                               message_len, message, sealed_len, (sgx_sealed_data_t*)sealed);
 
     ocall_print_status(status);
+    return status;
 }
 
 void unsealing_bytes(uint8_t* sealed, int sealed_len,
@@ -55,4 +56,7 @@ void unsealing_bytes(uint8_t* sealed, int sealed_len,
 
 int calc_unsealed_len(uint8_t* sealed, int sealed_len) {
     return sgx_get_encrypt_txt_len((sgx_sealed_data_t*)sealed);
+}
+int calc_sealed_len(int message_len) {
+    return sgx_calc_sealed_data_size(0, message_len);
 }

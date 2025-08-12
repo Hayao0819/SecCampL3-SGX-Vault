@@ -2,6 +2,7 @@
 
 #include <sgx_report.h>
 #include <sgx_tcrypto.h>
+#include <sgx_tseal.h>
 #include <sgx_utils.h>
 #include <stdlib.h>
 #include <string.h>
