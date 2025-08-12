@@ -1,0 +1,4 @@
+enclave_sig.dat
+server_enclave_t.c
+server_enclave_t.h
+signature.dat

@@ -2,3 +2,8 @@ settings_server.ini
 settings_client.ini
 *.bak
 public_key.pem
+*.o
+client_app
+server_app
+enclave.so
+enclave.signed.so
