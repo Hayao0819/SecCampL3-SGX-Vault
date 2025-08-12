@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "*.ts": "typescript",
+    "*.mdx": "markdown",
+    "*.css": "tailwindcss",
+    "*.sed": "plaintext",
+    "*.yaml": "yaml",
+    "string": "cpp"
+  }
+}
