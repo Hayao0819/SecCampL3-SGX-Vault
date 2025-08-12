@@ -176,8 +176,14 @@ void handler_stop(sgx_enclave_id_t eid, Server& svr, const Request& req, Respons
     svr.stop();
 }
 
-void handler_status(sgx_enclave_id_t eid) {
+void handler_status(sgx_enclave_id_t eid, const Request& req, Response& res) {
     json::JSON status_json;
 
-    status_json["status"] = "";    
+    bool init_require = false;
+    ecall_check_init_require(eid, &init_require);
+    status_json["init_require"] = init_require;
+
+    res.set_content(status_json.dump(), "application/json");
+
+    // status_json["status"] = "";
 }

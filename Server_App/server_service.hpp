@@ -24,4 +24,4 @@ void handler_sample_addition(sgx_enclave_id_t eid, const Request& req, Response&
 void handler_destruct_ra(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_hi(const Request& req, Response& res);
 void handler_stop(sgx_enclave_id_t eid, Server& svr, const Request& req, Response& res);
-void handler_status(sgx_enclave_id_t eid);
+void handler_status(sgx_enclave_id_t eid, const Request& req, Response& res);

@@ -1,10 +1,8 @@
 #include "headers.hpp"
+#include "server_config.hpp"
 #include "server_sgx.hpp"
 
 const char* config_file_path = "./server-data.dat";
-#include "headers.hpp"
-#include "server_config.cpp"
-#include "server_sgx.hpp"
 
 int main(int argc, char* argv[]) {
     print_debug_message("", INFO);

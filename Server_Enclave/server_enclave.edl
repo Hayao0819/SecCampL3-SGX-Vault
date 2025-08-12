@@ -38,6 +38,10 @@ enclave
 
         public void ecall_init_app([in, size=app_config_len]uint8_t *app_config, 
             size_t app_config_len);
+
+        public bool ecall_check_init_require();
+
+        public void ecall_setup_master_password([in, string]const char* master_password);
     };
 
     /* OCALLのプロトタイプを記述 */
