@@ -30,6 +30,9 @@ void server_logics(sgx_enclave_id_t eid) {
     svr.Get("/stop", [&](const Request& req, Response& res) {
         handler_stop(eid, svr, req, res);
     });
+    svr.Get("/status", [&](const Request& req, Response& res) {
+        handler_status(eid);
+    });
 
     svr.listen("localhost", 1234);
 }

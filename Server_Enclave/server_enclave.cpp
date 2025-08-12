@@ -1,9 +1,10 @@
+#include <sgx_tseal.h>
+
 #include <map>
 
 #include "server_enclave_headers.hpp"
 #include "server_enclave_ra.hpp"
 #include "server_enclave_utils.hpp"
-
 extern std::vector<ra_session_t> g_ra_sessions;
 
 sgx_status_t ecall_sample_addition(uint32_t ra_ctx,
@@ -131,7 +132,7 @@ void parse_unsealed_data(uint8_t* unsealed_data, size_t unsealed_data_size, SGXV
     }
 }
 
-void ecall_init_app(uint8_t* app_config, size_t app_config_len, bool *init_require) {
+void ecall_init_app(uint8_t* app_config, size_t app_config_len) {
     ocall_print("Server Enclave initialized successfully.", 1);
 
     if (config == nullptr) {
@@ -163,4 +164,41 @@ void ecall_init_app(uint8_t* app_config, size_t app_config_len, bool *init_requi
     ocall_print("App configuration initialized.", 1);
 
     // return SGX_SUCCESS;
+}
+
+bool ecall_check_init_require() {
+    return config == nullptr || config->master_password.empty();
+}
+
+void ecall_setup_master_password(const char* master_password) {
+    if (config == nullptr) {
+        config = new SGXVaultConfig();
+    }
+
+    sgx_sha256_hash_t password_hash;
+    sgx_status_t password_hash_status = sgx_sha256_msg(
+        reinterpret_cast<const uint8_t*>(master_password),
+        strlen(master_password),
+        &password_hash);
+    if (password_hash_status != SGX_SUCCESS) {
+        ocall_print("Failed to hash the master password.", 2);
+        return;
+    }
+    config->master_password = std::string(reinterpret_cast<const char*>(password_hash), SGX_SHA256_HASH_SIZE);
+
+
+    
+
+    ocall_print("Master password set successfully.", 1);
+}
+
+void update_config(){
+    if (config == nullptr) {
+        ocall_print("Configuration is not initialized.", 2);
+        return;
+    }
+
+    
+
+    ocall_print("Configuration updated successfully.", 1);
 }

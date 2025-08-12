@@ -175,3 +175,9 @@ void handler_stop(sgx_enclave_id_t eid, Server& svr, const Request& req, Respons
     sgx_destroy_enclave(eid);
     svr.stop();
 }
+
+void handler_status(sgx_enclave_id_t eid) {
+    json::JSON status_json;
+
+    status_json["status"] = "";    
+}
