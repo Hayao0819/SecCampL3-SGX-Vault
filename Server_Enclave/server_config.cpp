@@ -126,3 +126,21 @@ void sealing_config(uint8_t* sealed_data, size_t sealed_data_size) {
 
     ocall_print("Configuration updated successfully.", 1);
 }
+
+void write_current_config() {
+    uint8_t* sealed_config;
+    size_t sealed_config_size;
+
+    try {
+        sealing_config(sealed_config, sealed_config_size);
+    } catch (const std::runtime_error& e) {
+        ocall_print(e.what(), 2);
+        return;
+    }
+    if (sealed_config == nullptr) {
+        ocall_print("Failed to seal the configuration data.", 2);
+        return;
+    }
+
+    ocall_write_config_file(sealed_config, sealed_config_size);
+}

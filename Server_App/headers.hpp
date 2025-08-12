@@ -30,11 +30,10 @@
 
 using namespace httplib;
 
-// server_router.cpp で定義されている server_logics の宣言
-void server_logics(sgx_enclave_id_t eid);
-
 // server_app.cpp で定義されている load_config_file の宣言
 uint8_t* load_config_file(const char* config_file_path, long& config_size);
 
 // server_router.cpp で定義されている server_logics の宣言
 void server_logics(sgx_enclave_id_t eid);
+
+extern const char* config_file_path;

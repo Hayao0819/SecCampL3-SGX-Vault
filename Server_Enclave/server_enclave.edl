@@ -49,6 +49,6 @@ enclave
 
         void ocall_print_binary([in, size=sz]uint8_t *buf, size_t sz);
 
-        // void ocall_write_config_file([in, string]const char* config_file_path, [in, size=data_len]const uint8_t* data, size_t data_len);
+        void ocall_write_config_file([in, size=data_len]const uint8_t* data, size_t data_len);
     };
 };

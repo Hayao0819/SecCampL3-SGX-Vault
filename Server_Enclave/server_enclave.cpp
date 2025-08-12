@@ -6,6 +6,7 @@
 #include "server_enclave_headers.hpp"
 #include "server_enclave_ra.hpp"
 #include "server_enclave_utils.hpp"
+#include "server_config.hpp"
 
 sgx_status_t ecall_sample_addition(uint32_t ra_ctx,
                                    uint8_t* cipher1, size_t cipher1_len, uint8_t* cipher2,
@@ -154,5 +155,7 @@ void ecall_setup_master_password(const char* master_password) {
     }
     config->master_password = std::string(reinterpret_cast<const char*>(password_hash), SGX_SHA256_HASH_SIZE);
 
+
     ocall_print("Master password set successfully.", 1);
 }
+

@@ -1,6 +1,6 @@
 #include "headers.hpp"
 
-void ocall_write_config_file(const char* config_file_path, const uint8_t* data, size_t data_len) {
+void ocall_write_config_file(const uint8_t* data, size_t data_len) {
     if (!config_file_path || !data || data_len == 0) {
         ocall_print("Invalid parameters for writing configuration file.", 2);
         return;
