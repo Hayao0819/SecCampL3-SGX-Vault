@@ -189,7 +189,7 @@ sgx_status_t ecall_store_password(const char* key, const char* value) {
     return SGX_SUCCESS;
 }
 
-sgx_status_t ecall_get_password(char* key, char** value, size_t* value_len) {
+sgx_status_t ecall_get_password(const char* key, char* value, size_t value_len) {
     if (config == nullptr) {
         ocall_print("Configuration is not initialized in ecall_get_password.", 2);
         return SGX_ERROR_UNEXPECTED;
@@ -206,12 +206,41 @@ sgx_status_t ecall_get_password(char* key, char** value, size_t* value_len) {
         return SGX_ERROR_UNEXPECTED;
     }
 
-    *value = new char[it->second.size() + 1];
-    memcpy(*value, it->second.c_str(), *value_len);
-    (*value)[*value_len] = '\0';
-    *value_len = it->second.size();
+    if (value_len < it->second.size()) {
+        ocall_print("Buffer size is too small.", 2);
+        return SGX_ERROR_INVALID_PARAMETER;
+    }
+    // memcpy(value, it->second.c_str(), it->second.size());
+    // value[it->second.size()] = '\0';
+
+    strcpy_s(value, value_len, it->second.c_str());
+
+    std::string password_show_msg = "Password for key '" + std::string(key) + "' is: " + it->second;
+    ocall_print(password_show_msg.c_str(), 1);
 
     ocall_print("Password retrieved successfully.", 1);
+    return SGX_SUCCESS;
+}
+
+sgx_status_t ecall_get_password_length(const char* key, size_t* value_len) {
+    if (config == nullptr) {
+        ocall_print("Configuration is not initialized in ecall_get_password_length.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    if (key == nullptr || value_len == nullptr) {
+        ocall_print("Key or value_len is null.", 2);
+        return SGX_ERROR_INVALID_PARAMETER;
+    }
+
+    auto it = config->user_data.find(key);
+    if (it == config->user_data.end()) {
+        ocall_print("Key not found in user data.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    *value_len = it->second.size();
+    ocall_print("Password length retrieved successfully.", 1);
     return SGX_SUCCESS;
 }
 
@@ -254,4 +283,3 @@ bool ecall_authenticate_master_password(const char* master_password) {
 
     return config->master_password == std::string(reinterpret_cast<const char*>(password_hash), SGX_SHA256_HASH_SIZE);
 }
-

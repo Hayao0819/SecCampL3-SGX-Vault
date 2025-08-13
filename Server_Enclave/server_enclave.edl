@@ -45,8 +45,10 @@ enclave
 
         public sgx_status_t ecall_store_password([in, string]const char* key, [in,string]const char* value);
 
-        // public sgx_status_t ecall_get_password([in, string]char* key, 
-        //     [out, size=value_len]char** value, [out]size_t* value_len);
+        public sgx_status_t ecall_get_password_length([in, string]const char* key, [out]size_t* value_len);
+
+        public sgx_status_t ecall_get_password([in, string]const char* key, 
+            [out, size=value_len]char* value, size_t value_len);
 
         public int ecall_stored_stat();
 

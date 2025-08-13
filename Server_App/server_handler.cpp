@@ -93,7 +93,6 @@ bool middleware_master_key(sgx_enclave_id_t eid, std::string input_key) {
     return authenticated;
 }
 
-
 // 各エンドポイントのハンドラ関数
 void handler_init_ra(sgx_enclave_id_t eid, const Request& req, Response& res) {
     std::string response_json, error_message = "";
@@ -250,3 +249,54 @@ void handler_store_password(sgx_enclave_id_t eid, const Request& req, Response& 
     res.set_content(res_json_obj.dump(), "application/json");
 }
 
+void handler_get_password(sgx_enclave_id_t eid, const Request& req, Response& res) {
+    std::string master_key = req.get_param_value("master_key");
+    std::string key = req.get_param_value("key");
+
+    bool authorized = middleware_master_key(eid, master_key);
+    if (!authorized) {
+        res.status = 403;
+        json::JSON res_json_obj;
+        res_json_obj["error_message"] = "Unauthorized access. Invalid master key.";
+        res.set_content(res_json_obj.dump(), "application/json");
+        return;
+    }
+
+    size_t value_len = 0;
+    sgx_status_t get_password_length_status;
+    ecall_get_password_length(eid, &get_password_length_status, key.c_str(), &value_len);
+    if (get_password_length_status != SGX_SUCCESS || value_len == 0) {
+        res.status = 404;
+        json::JSON res_json_obj;
+        res_json_obj["error_message"] = "Key not found or password length is zero.";
+        res.set_content(res_json_obj.dump(), "application/json");
+        return;
+    }
+
+    // バッファ確保（+1 は null 終端用）
+    char* value = new char[value_len + 1];
+    memset(value, 0, value_len + 1);
+
+    sgx_status_t get_password_status;
+    sgx_status_t status = ecall_get_password(eid, &get_password_status, key.c_str(), value, value_len);
+    if (status != SGX_SUCCESS || get_password_status != SGX_SUCCESS) {
+        delete[] value;
+        res.status = 500;
+        json::JSON res_json_obj;
+        print_sgx_status(status);
+        print_sgx_status(get_password_status);
+        res_json_obj["error_message"] = "Failed to retrieve password.";
+        res.set_content(res_json_obj.dump(), "application/json");
+        return;
+    }
+
+    print_debug_message("Retrieved password for key: " + key, INFO);
+
+    json::JSON res_json_obj;
+    res_json_obj["key"] = key;
+    res_json_obj["value"] = std::string(value, value_len);
+
+    delete[] value;
+    res.status = 200;
+    res.set_content(res_json_obj.dump(), "application/json");
+}

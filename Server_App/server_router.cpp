@@ -49,6 +49,11 @@ void server_logics(sgx_enclave_id_t eid) {
         print_debug_message(log_msg, INFO);
         handler_store_password(eid, req, res);
     });
+    svr.Post("/get-password", [&](const Request& req, Response& res) {
+        std::string log_msg = std::string("[REQ] /get-password: key=[") + req.get_param_value("key") + "]";
+        print_debug_message(log_msg, INFO);
+        handler_get_password(eid, req, res);
+    });
 
     svr.listen("localhost", 1234);
 }

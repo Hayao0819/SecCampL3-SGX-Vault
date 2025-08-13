@@ -60,3 +60,20 @@ int calc_unsealed_len(uint8_t* sealed, int sealed_len) {
 int calc_sealed_len(int message_len) {
     return sgx_calc_sealed_data_size(0, message_len);
 }
+
+int strcpy_s(char* dest, std::size_t dest_size, const char* src) noexcept {
+    if (!dest || !src || dest_size == 0) {
+        return 22;  // EINVAL
+    }
+
+    std::size_t i = 0;
+    for (; src[i] != '\0'; ++i) {
+        if (i + 1 >= dest_size) {  // 終端用の1バイトを確保
+            dest[0] = '\0';        // 可能なら空文字列にしておく
+            return 34;             // ERANGE: バッファ不足
+        }
+        dest[i] = src[i];
+    }
+    dest[i] = '\0';
+    return 0;
+}

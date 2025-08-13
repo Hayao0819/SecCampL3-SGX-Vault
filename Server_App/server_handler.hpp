@@ -27,3 +27,4 @@ void handler_stop(sgx_enclave_id_t eid, Server& svr, const Request& req, Respons
 void handler_status(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_set_masterkey(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_store_password(sgx_enclave_id_t eid, const Request& req, Response& res);
+void handler_get_password(sgx_enclave_id_t eid, const Request& req, Response& res);
