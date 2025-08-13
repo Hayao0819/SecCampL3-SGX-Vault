@@ -2,7 +2,6 @@
 
 #include "client_headers.hpp"
 
-
 settings_t g_settings;
 
 /* iniファイルから読み込み、失敗時にはプログラムを即時終了する */
