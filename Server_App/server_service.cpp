@@ -3,7 +3,7 @@
 
 /* SPから受信した2値をEnclave内で復号し加算して結果を返却 */
 int encrypt_sample_addition(sgx_enclave_id_t eid, std::string request_json,
-                    std::string& response_json, std::string error_message) {
+                            std::string& response_json, std::string error_message) {
     print_debug_message("==============================================", INFO);
     print_debug_message("Sample Addition", INFO);
     print_debug_message("==============================================", INFO);
@@ -73,10 +73,10 @@ int encrypt_sample_addition(sgx_enclave_id_t eid, std::string request_json,
 }
 
 /* SPから受信したmaster_passwordをEnclave内でSealing */
-int ra_setup_master_password(sgx_enclave_id_t eid, std::string request_json,
-                    std::string& response_json, std::string error_message) {
+int encrypt_setup_master_password(sgx_enclave_id_t eid, std::string request_json,
+                                  std::string& response_json, std::string error_message) {
     print_debug_message("==============================================", INFO);
-    print_debug_message("Sample Addition", INFO);
+    print_debug_message("Setup Master Password", INFO);
     print_debug_message("==============================================", INFO);
     print_debug_message("", INFO);
 
@@ -116,9 +116,7 @@ int ra_setup_master_password(sgx_enclave_id_t eid, std::string request_json,
     print_debug_message("Invoke ECALL for storing master key.", DEBUG_LOG);
     print_debug_message("", DEBUG_LOG);
 
-    // status = ecall_encrypt_setup_master_password(eid, &retval, ra_ctx, cipher1,
-    //                                cipher1_len, cipher2, cipher2_len, iv, tag1, tag2,
-    //                                result, &result_len, iv_result, tag_result);
+    status = ecall_encrypt_setup_master_password(eid, &retval, ra_ctx, cipher, cipher_len, iv, tag, result, &result_len, iv_result, tag_result);
 
     if (status != SGX_SUCCESS) {
         error_message = "Failed to complete sample addition ECALL.";
