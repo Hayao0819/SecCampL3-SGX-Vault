@@ -166,6 +166,41 @@ sgx_status_t ecall_setup_master_password(const char* master_password) {
     return SGX_SUCCESS;
 }
 
+sgx_status_t ecall_encrypt_setup_master_password(uint32_t ra_ctx,
+                                                 uint8_t* cipher, size_t cipher_len, uint8_t* iv, uint8_t* tag,
+                                                 uint8_t* result, size_t* result_len,
+                                                 uint8_t* iv_result, uint8_t* tag_result) {
+    if (config == nullptr) {
+        ocall_print("Configuration is not initialized in ecall_encrypt_setup_master_password.", 2);
+        return SGX_ERROR_UNEXPECTED;
+    }
+
+    sgx_ra_key_128_t sk_key;
+    memcpy(&sk_key, g_ra_sessions[ra_ctx].sk, 16);
+
+    uint8_t* plain = new uint8_t[cipher_len]();
+
+    /* GCM復号*/
+    sgx_status_t status = sgx_rijndael128GCM_decrypt(&sk_key, cipher,
+                                                     cipher_len, plain, iv, 12, NULL, 0,
+                                                     (sgx_aes_gcm_128bit_tag_t*)tag);
+
+    if (status != SGX_SUCCESS) {
+        const char* message = "Failed to decrypt cipher.";
+        ocall_print(message, 2);  // 2はエラーログである事を表す
+        ocall_print_status(status);
+        delete[] plain;
+        return status;
+    }
+
+    char* master_password = reinterpret_cast<char*>(plain, cipher_len);
+
+    std::string log = "recieived master password: " + std::string(master_password);
+    ocall_print(log.c_str(), 1);
+
+    ecall_setup_master_password(master_password);
+}
+
 sgx_status_t ecall_store_password(const char* key, const char* value) {
     if (config == nullptr) {
         ocall_print("Configuration is not initialized in ecall_store_password.", 2);

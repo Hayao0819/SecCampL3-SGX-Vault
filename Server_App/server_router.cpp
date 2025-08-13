@@ -22,7 +22,7 @@ void server_logics(sgx_enclave_id_t eid) {
     /* リモート計算処理テスト（受信した秘密情報のEnclave内での加算） */
     svr.Post("/sample-addition", [&eid](const Request& req, Response& res) {
         print_debug_message(std::string("[REQ] /sample-addition: ") + req.body, INFO);
-        handler_sample_addition(eid, req, res);
+        handler_encrypt_sample_addition(eid, req, res);
     });
     svr.Post("/destruct-ra", [&](const Request& req, Response& res) {
         print_debug_message(std::string("[REQ] /destruct-ra: ") + req.body, INFO);

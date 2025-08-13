@@ -36,6 +36,13 @@ enclave
             [out, size=32]uint8_t *result, [out]size_t *result_len,
             [out, size=12]uint8_t *iv_result, [out, size=16]uint8_t *tag_result);
 
+        public sgx_status_t ecall_encrypt_setup_master_password(uint32_t ra_ctx,
+            [in, size=cipher_len]uint8_t* cipher, size_t cipher_len, 
+            [in, size=12]uint8_t* iv, 
+            [in, size=16]uint8_t* tag,
+            [in, size=128]uint8_t* result, [out]size_t* result_len,
+            [out, size=12]uint8_t* iv_result,[out, size=16] uint8_t* tag_result);
+
         public void ecall_init_app([in, size=app_config_len]uint8_t *app_config, 
             size_t app_config_len);
 

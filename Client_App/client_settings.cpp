@@ -2,9 +2,8 @@
 
 #include "client_headers.hpp"
 
-settings_t g_settings;
 
-extern settings_t g_settings;
+settings_t g_settings;
 
 /* iniファイルから読み込み、失敗時にはプログラムを即時終了する */
 std::string load_from_ini(std::string section, std::string key) {

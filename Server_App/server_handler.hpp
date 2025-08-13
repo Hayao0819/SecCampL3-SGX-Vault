@@ -20,7 +20,6 @@ int sample_addition(sgx_enclave_id_t eid, std::string request_json,
 void handler_init_ra(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_get_quote(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_ra_result(sgx_enclave_id_t eid, const Request& req, Response& res);
-void handler_sample_addition(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_destruct_ra(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_hi(const Request& req, Response& res);
 void handler_stop(sgx_enclave_id_t eid, Server& svr, const Request& req, Response& res);
@@ -28,3 +27,5 @@ void handler_status(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_set_masterkey(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_store_password(sgx_enclave_id_t eid, const Request& req, Response& res);
 void handler_get_password(sgx_enclave_id_t eid, const Request& req, Response& res);
+
+void handler_encrypt_sample_addition(sgx_enclave_id_t eid, const Request& req, Response& res);
