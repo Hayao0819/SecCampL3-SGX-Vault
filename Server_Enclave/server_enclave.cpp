@@ -239,8 +239,10 @@ sgx_status_t ecall_get_password_length(const char* key, size_t* value_len) {
         return SGX_ERROR_UNEXPECTED;
     }
 
-    *value_len = it->second.size();
-    ocall_print("Password length retrieved successfully.", 1);
+    // ヌル終端分も含めて返す
+    *value_len = it->second.size() + 1;
+
+    ocall_print("Password length (including null terminator) retrieved successfully.", 1);
     return SGX_SUCCESS;
 }
 

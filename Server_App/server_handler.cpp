@@ -248,11 +248,11 @@ void handler_store_password(sgx_enclave_id_t eid, const Request& req, Response& 
     res_json_obj["message"] = "Password stored successfully.";
     res.set_content(res_json_obj.dump(), "application/json");
 }
-
 void handler_get_password(sgx_enclave_id_t eid, const Request& req, Response& res) {
     std::string master_key = req.get_param_value("master_key");
     std::string key = req.get_param_value("key");
 
+    // 認証チェック
     bool authorized = middleware_master_key(eid, master_key);
     if (!authorized) {
         res.status = 403;
@@ -262,9 +262,11 @@ void handler_get_password(sgx_enclave_id_t eid, const Request& req, Response& re
         return;
     }
 
+    // パスワード長を取得（ヌル終端込み）
     size_t value_len = 0;
     sgx_status_t get_password_length_status;
     ecall_get_password_length(eid, &get_password_length_status, key.c_str(), &value_len);
+
     if (get_password_length_status != SGX_SUCCESS || value_len == 0) {
         res.status = 404;
         json::JSON res_json_obj;
@@ -273,12 +275,14 @@ void handler_get_password(sgx_enclave_id_t eid, const Request& req, Response& re
         return;
     }
 
-    // バッファ確保（+1 は null 終端用）
-    char* value = new char[value_len + 1];
-    memset(value, 0, value_len + 1);
+    // バッファ確保（返ってきた値が終端込みなのでそのまま確保）
+    char* value = new char[value_len];
+    memset(value, 0, value_len);
 
+    // パスワード取得
     sgx_status_t get_password_status;
     sgx_status_t status = ecall_get_password(eid, &get_password_status, key.c_str(), value, value_len);
+
     if (status != SGX_SUCCESS || get_password_status != SGX_SUCCESS) {
         delete[] value;
         res.status = 500;
@@ -290,13 +294,15 @@ void handler_get_password(sgx_enclave_id_t eid, const Request& req, Response& re
         return;
     }
 
+    // 正常レスポンス
     print_debug_message("Retrieved password for key: " + key, INFO);
 
     json::JSON res_json_obj;
     res_json_obj["key"] = key;
-    res_json_obj["value"] = std::string(value, value_len);
+    res_json_obj["value"] = std::string(value);  // ヌル終端が保証されているのでOK
 
     delete[] value;
+
     res.status = 200;
     res.set_content(res_json_obj.dump(), "application/json");
 }
